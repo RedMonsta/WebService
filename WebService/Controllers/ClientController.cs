@@ -31,10 +31,34 @@ namespace WebService.Controllers
                     if (tmpCli != null) sw.WriteLine(tmpCli.Login + " " + tmpCli.Password);
                     else sw.WriteLine("Not Found " + login);
                 }
-                
+
+                //if (tmpCli != null) return Ok(tmpCli);
+                //else return NotFound();
+                //System.Web.Http.Results.Ok
                 return Ok(db.Clients.Find(login));
             }
             //else return NotFound();
+        }
+
+        public IHttpActionResult Post(Client client)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            Client tmpcli = db.Clients.Find(client.Login);
+            if (tmpcli != null)
+            {
+                client.Login = "__IsExist__";
+                client.Password = "__IsExist__";
+            }
+            else
+            {
+                db.Clients.Add(client);
+                db.SaveChanges();                
+            }
+            return Ok(client);
         }
     }
 }
