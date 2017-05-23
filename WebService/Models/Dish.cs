@@ -11,7 +11,7 @@ namespace WebService.Models
         public int Id { get; set; }
         [Required]
         public string Name { get; set; }
-        public string Energy_value { get; set; }
-        public string Price { get; set; }
+        public int Energy_value { get; set; }
+        public int Price { get; set; }
     }
 }

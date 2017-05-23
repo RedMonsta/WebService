@@ -13,31 +13,32 @@ namespace WebService.Controllers
     {
         AtkitchenContext db = new AtkitchenContext();
 
+        //Временно для дебага. Можно сделать для админов
         public IHttpActionResult Get()
         {
             if (db.Clients.Any()) return Ok(db.Clients.ToList());
             else return NotFound();
         }
 
-        [Route("api/client/{login}")]
-        public IHttpActionResult Get(string login)
+        [Route("api/client/{login}/{password}")]
+        public IHttpActionResult Get(string login, string password)
         {
-            //if (db.Clients.Any(x => x.Login == login))
+            Client tmpCli = db.Clients.Find(login);
+            if (tmpCli == null)
             {
-
-                Client tmpCli = db.Clients.Find(login);
-                using (StreamWriter sw = new StreamWriter(@"D:\Heap\servfile.txt", true, System.Text.Encoding.Default))
-                {
-                    if (tmpCli != null) sw.WriteLine(tmpCli.Login + " " + tmpCli.Password);
-                    else sw.WriteLine("Not Found " + login);
-                }
-
-                //if (tmpCli != null) return Ok(tmpCli);
-                //else return NotFound();
-                //System.Web.Http.Results.Ok
-                return Ok(db.Clients.Find(login));
+                var rescli = new Client { Login = "#NullClient#", Password = "#NullClient#" };
+                return Ok(rescli);
             }
-            //else return NotFound();
+            else
+            {
+                if (tmpCli.Password.Trim() == Authorizer.GetHashFromStringValue(password, Authorizer.ServerSHAKey).Trim())
+                    return Ok(new Client { Login = login, Password = password } );
+                else
+                {
+                    var rescli = new Client { Login = "#WrongPassword#", Password = "#WrongPassword#" };
+                    return Ok(rescli);
+                }
+            }
         }
 
         public IHttpActionResult Post(Client client)
@@ -46,16 +47,17 @@ namespace WebService.Controllers
             {
                 return BadRequest(ModelState);
             }
-
-            Client tmpcli = db.Clients.Find(client.Login);
+            Client getclt = new Client { Login = client.Login, Password = client.Password };
+            Client tmpcli = db.Clients.Find(getclt.Login);
             if (tmpcli != null)
             {
-                client.Login = "__IsExist__";
-                client.Password = "__IsExist__";
+                client.Login = "#ExistNickname#";
+                client.Password = "#ExistNickname#";               
             }
             else
             {
-                db.Clients.Add(client);
+                Client tmpuser = new Client { Login = getclt.Login, Password = Authorizer.GetHashFromStringValue(getclt.Password, Authorizer.ServerSHAKey) };
+                db.Clients.Add(tmpuser);
                 db.SaveChanges();                
             }
             return Ok(client);

@@ -13,5 +13,13 @@ namespace WebService.Models
         public string Login { get; set; }
         [Required]
         public string Password { get; set; }
+        //public byte[] Password { get; set; } = new byte[20];
     }
+
+
+    public class ClientPlusOrder
+    {
+        public Client client { get; set; }
+        public Order order { get; set; }
+    }  
 }

@@ -5,6 +5,9 @@ using System.Net;
 using System.Web.Http;
 using WebService.Models;
 using System.Data.Entity;
+using System.Text;
+using System.IO;
+using System;
 
 namespace WebService.Controllers
 {
@@ -12,17 +15,14 @@ namespace WebService.Controllers
     {
         AtkitchenContext db = new AtkitchenContext();
 
-        //public IEnumerable<Order> Get()
-        //{
-        //    return db.Orders.ToList();
-        //}
-
+        //Временно для дебага. Можно сделать для админов
         public IHttpActionResult Get()
         {
             if (db.Orders.Any()) return Ok(db.Orders.ToList());
             else return NotFound();
         }
 
+        //Можно так же отправлять юзера и проверять админ или нет
         public IHttpActionResult Get(int id)
         {
             if (db.Orders.Any(x => x.Id == id))
@@ -32,44 +32,98 @@ namespace WebService.Controllers
             else return NotFound();
         }
 
-        //public Order Get(int id)
-        //{
-        //    return db.Orders.Find(id);
-        //}
+        [Route("api/order/{login}/{password}")]
+        public IHttpActionResult Get(string login, string password)
+        {
+            var orderslist = db.Orders.ToList();
+            var userslist = db.Clients.ToList();
+            List<Order> reslist = new List<Order>();
+            foreach (var item in orderslist)
+            {
+                if (item.Nickname.Trim() == login.Trim()) //reslist.Add(item);
+                {
+                    var tmpuser = userslist.Find(x => x.Login == login);
+                    if (tmpuser != null)
+                    {
+                        if (tmpuser.Password.Trim() == Authorizer.GetHashFromStringValue(password, Authorizer.ServerSHAKey).Trim()) reslist.Add(item);
+                    }
+                }
+            }
+            return Ok(reslist);
+        }
 
-        public IHttpActionResult Post(Order ord)
+        //public IHttpActionResult Post(Order ord)
+        public IHttpActionResult Post(ClientPlusOrder cltord)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            db.Orders.Add(ord);
-            db.SaveChanges();
-            return Ok(ord);
+            var client = cltord.client;
+            var order = cltord.order;
+
+            Client tmpCli = db.Clients.Find(client.Login);
+            if (tmpCli != null)
+            {
+                if (tmpCli.Password.Trim() == Authorizer.GetHashFromStringValue(client.Password, Authorizer.ServerSHAKey).Trim())
+                {
+                    db.Orders.Add(order);
+                    db.SaveChanges();
+                    return Ok(order);
+                }
+                else return Ok(new Order { Name = "#ErrorClient#"});
+
+            }
+            return Ok(new Order { Name = "#ErrorClient#" });
         }
 
-        public IHttpActionResult Put(Order ord)
+        public IHttpActionResult Put(ClientPlusOrder cltord)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
+            var client = cltord.client;
+            var order = cltord.order;
 
-            db.Entry(ord).State = EntityState.Modified;
-            db.SaveChanges();
-            return Ok(ord);
+            Client tmpCli = db.Clients.Find(client.Login);
+            if (tmpCli != null)
+            {
+                if (tmpCli.Password.Trim() == Authorizer.GetHashFromStringValue(client.Password, Authorizer.ServerSHAKey).Trim())
+                {
+                    db.Entry(order).State = EntityState.Modified;
+                    db.SaveChanges();
+                    return Ok(order);
+                }
+                else return Ok(new Order { Name = "#ErrorClient#" });
+            }
+            return Ok(new Order { Name = "#ErrorClient#" });
         }
 
-        public IHttpActionResult Delete(int id)
-        {
-            Order ord = db.Orders.Find(id);
-            if (ord != null)
+        [Route("api/order/{id}/{login}/{password}")]
+        public IHttpActionResult Delete(string id, string login, string password)
+        //public IHttpActionResult Delete(int id)
+        {          
+            Client tmpCli = db.Clients.Find(login);
+            if (tmpCli != null)
             {
-                db.Orders.Remove(ord);
-                db.SaveChanges();
-                return Ok(ord);
+                if (tmpCli.Password.Trim() == Authorizer.GetHashFromStringValue(password, Authorizer.ServerSHAKey).Trim())
+                {
+                    var intid = Convert.ToInt32(id);
+                    Order ord = db.Orders.Find(intid);
+                    if (ord != null)
+                    {
+                        db.Orders.Remove(ord);
+                        db.SaveChanges();
+                        return Ok(ord);
+                    }
+                    return NotFound();
+                }
+                else return Ok(new Order { Name = "#ErrorClient#" });
             }
-            return NotFound();
+            return Ok(new Order { Name = "#ErrorClient#" });
+
+            
         }
     }
 }
