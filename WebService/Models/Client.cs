@@ -14,6 +14,7 @@ namespace WebService.Models
         [Required]
         public string Password { get; set; }
         //public byte[] Password { get; set; } = new byte[20];
+        public int Status { get; set; } = 1;
     }
 
 

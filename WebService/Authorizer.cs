@@ -4,7 +4,6 @@ using System.Text;
 
 namespace WebService
 {
-    //RSA не подходит так как нужны именно буквенно-численные данные (можно виженер)
     public static class Authorizer
     {
         public static byte[] ClientSHAKey { get; } = BitConverter.GetBytes(0x67452301EFCDAB89);
@@ -74,7 +73,34 @@ namespace WebService
             return x;
         }
 
+        public static string EncryptStringByBase64(string entryString)
+        {
+            byte[] entryBytes = Encoding.UTF8.GetBytes(entryString);
+            string encryptedString = Convert.ToBase64String(entryBytes);
+            encryptedString = encryptedString.Replace('/', '+');
+            return encryptedString;
+        }
 
+        public static string DecryptStringByBase64(string entryString)
+        {
+            string decryptedString = entryString;
+            decryptedString = decryptedString.Replace('+', '/');
+            byte[] decryptedBytes = Convert.FromBase64String(decryptedString);
+            decryptedString = Encoding.UTF8.GetString(decryptedBytes);
+            return decryptedString;
+        }
+
+        public static bool IsEqualTwoSHAHashes(string hash1, string hash2)
+        {
+            bool result = true;
+            byte[] byteHash1 = Encoding.UTF8.GetBytes(hash1.Trim());
+            byte[] byteHash2 = Encoding.UTF8.GetBytes(hash2.Trim());
+            for (int i = 0; i < byteHash1.Length; i++)
+            {               
+                if (byteHash1[i] != byteHash2[i]) result = false;
+            }
+            return result;
+        }
 
     }
 }

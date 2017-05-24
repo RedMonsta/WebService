@@ -23,14 +23,46 @@ namespace WebService.Controllers
         }
 
         //Можно так же отправлять юзера и проверять админ или нет
-        public IHttpActionResult Get(int id)
+        //public IHttpActionResult Get(int id)
+        //{
+        //    if (db.Orders.Any(x => x.Id == id))
+        //    {
+        //        return Ok(db.Orders.Find(id));
+        //    }
+        //    else return NotFound();
+        //}
+
+        [Route("api/order/{login}/{password}/{status}")]
+        public IHttpActionResult Get(string login, string password, string status)
         {
-            if (db.Orders.Any(x => x.Id == id))
+            List<Order> reslist = new List<Order>();
+            Client tmpCli = db.Clients.Find(login);
+            if (tmpCli == null)
             {
-                return Ok(db.Orders.Find(id));
+                return Ok(reslist);
             }
-            else return NotFound();
+            else
+            {
+                if (tmpCli.Password.Trim() == Authorizer.GetHashFromStringValue(Authorizer.DecryptStringByBase64(password), Authorizer.ServerSHAKey).Trim())
+                {
+                    if (tmpCli.Status == 2)
+                    {
+                        if (db.Orders.Any()) return Ok(db.Orders.ToList());
+                        else return NotFound();
+                    }
+                    else
+                    {
+                        return Ok(reslist);
+                    }
+                }
+                else
+                {
+                    return Ok(reslist);
+                }
+            }
         }
+
+
 
         [Route("api/order/{login}/{password}")]
         public IHttpActionResult Get(string login, string password)
@@ -45,7 +77,7 @@ namespace WebService.Controllers
                     var tmpuser = userslist.Find(x => x.Login == login);
                     if (tmpuser != null)
                     {
-                        if (tmpuser.Password.Trim() == Authorizer.GetHashFromStringValue(password, Authorizer.ServerSHAKey).Trim()) reslist.Add(item);
+                        if (tmpuser.Password.Trim() == Authorizer.GetHashFromStringValue(Authorizer.DecryptStringByBase64(password), Authorizer.ServerSHAKey).Trim()) reslist.Add(item);
                     }
                 }
             }
@@ -65,7 +97,7 @@ namespace WebService.Controllers
             Client tmpCli = db.Clients.Find(client.Login);
             if (tmpCli != null)
             {
-                if (tmpCli.Password.Trim() == Authorizer.GetHashFromStringValue(client.Password, Authorizer.ServerSHAKey).Trim())
+                if (tmpCli.Password.Trim() == Authorizer.GetHashFromStringValue(Authorizer.DecryptStringByBase64(client.Password), Authorizer.ServerSHAKey).Trim())
                 {
                     db.Orders.Add(order);
                     db.SaveChanges();
@@ -89,7 +121,7 @@ namespace WebService.Controllers
             Client tmpCli = db.Clients.Find(client.Login);
             if (tmpCli != null)
             {
-                if (tmpCli.Password.Trim() == Authorizer.GetHashFromStringValue(client.Password, Authorizer.ServerSHAKey).Trim())
+                if (tmpCli.Password.Trim() == Authorizer.GetHashFromStringValue(Authorizer.DecryptStringByBase64(client.Password), Authorizer.ServerSHAKey).Trim())
                 {
                     db.Entry(order).State = EntityState.Modified;
                     db.SaveChanges();
@@ -107,7 +139,7 @@ namespace WebService.Controllers
             Client tmpCli = db.Clients.Find(login);
             if (tmpCli != null)
             {
-                if (tmpCli.Password.Trim() == Authorizer.GetHashFromStringValue(password, Authorizer.ServerSHAKey).Trim())
+                if (tmpCli.Password.Trim() == Authorizer.GetHashFromStringValue(Authorizer.DecryptStringByBase64(password), Authorizer.ServerSHAKey).Trim())
                 {
                     var intid = Convert.ToInt32(id);
                     Order ord = db.Orders.Find(intid);
