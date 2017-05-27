@@ -12,6 +12,7 @@ namespace WebService.Controllers
     {
         AtkitchenContext db = new AtkitchenContext();
 
+        [Route("api/dish")]
         public IHttpActionResult Get()
         {
             return Ok(db.Dishes.ToList());

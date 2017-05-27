@@ -14,16 +14,16 @@ namespace WebService.Controllers
         AtkitchenContext db = new AtkitchenContext();
 
         //Временно для дебага. Можно сделать для админов
-        public IHttpActionResult Get()
-        {
-            if (db.Clients.Any()) return Ok(db.Clients.ToList());
-            else return NotFound();
-        }
-
+        //[Route("api/client")]
+        //public IHttpActionResult Get()
+        //{
+        //    if (db.Clients.Any()) return Ok(db.Clients.ToList());
+        //    else return NotFound();
+        //}
+        
         [Route("api/client/{login}/{password}/{status}")]
         public IHttpActionResult Get(string login, string password, string status)
         {
-
             Client tmpCli = db.Clients.Find(login);
             if (tmpCli == null)
             {
@@ -106,6 +106,7 @@ namespace WebService.Controllers
             }
         }
 
+        [Route("api/client")]
         public IHttpActionResult Post(Client client)
         {
             if (!ModelState.IsValid)

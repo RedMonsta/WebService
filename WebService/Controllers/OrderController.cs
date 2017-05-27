@@ -16,11 +16,12 @@ namespace WebService.Controllers
         AtkitchenContext db = new AtkitchenContext();
 
         //Временно для дебага. Можно сделать для админов
-        public IHttpActionResult Get()
-        {
-            if (db.Orders.Any()) return Ok(db.Orders.ToList());
-            else return NotFound();
-        }
+        //[Route("api/order")]
+        //public IHttpActionResult Get()
+        //{
+        //    if (db.Orders.Any()) return Ok(db.Orders.ToList());
+        //    else return NotFound();
+        //}
 
         //Можно так же отправлять юзера и проверять админ или нет
         //public IHttpActionResult Get(int id)
@@ -62,8 +63,6 @@ namespace WebService.Controllers
             }
         }
 
-
-
         [Route("api/order/{login}/{password}")]
         public IHttpActionResult Get(string login, string password)
         {
@@ -84,6 +83,7 @@ namespace WebService.Controllers
             return Ok(reslist);
         }
 
+        [Route("api/order")]
         //public IHttpActionResult Post(Order ord)
         public IHttpActionResult Post(ClientPlusOrder cltord)
         {
@@ -109,6 +109,7 @@ namespace WebService.Controllers
             return Ok(new Order { Name = "#ErrorClient#" });
         }
 
+        [Route("api/order")]
         public IHttpActionResult Put(ClientPlusOrder cltord)
         {
             if (!ModelState.IsValid)
